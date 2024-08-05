@@ -13,7 +13,7 @@ const templateHtml = (title, list, body) => {
         <body>
           <h1><a href="/">WEB</a></h1>
           ${list}
-          <a href="create">create</a>
+          <a href="/create">create</a>
           ${body}
         </body>
         </html>
@@ -24,7 +24,7 @@ const templateList = (fileList) => {
     var list = '<ul>';
     var i = 0;
     while (i < fileList.length) {
-        list = list + `<li><a href="?id=${fileList[i]}">${fileList[i]}</a></li>`;
+        list = list + `<li><a href="/?id=${fileList[i]}">${fileList[i]}</a></li>`;
         i = i + 1;
     }
     list = list + '</ul>';
@@ -32,13 +32,9 @@ const templateList = (fileList) => {
 }
 
 var app = http.createServer(function (request, response) {
-    var _url = request.url;
-    var queryData = url
-        .parse(_url, true)
-        .query;
-    var pathName = url
-        .parse(_url, true)
-        .pathname;
+  var _url = request.url;
+  var queryData = url.parse(_url, true).query;
+  var pathName = url.parse(_url, true).pathname;
 
     if (pathName === '/') {
         if (!queryData.id) {
@@ -62,13 +58,16 @@ var app = http.createServer(function (request, response) {
                 });
             });
         }
-    } else if (pathname = '/create') {
-      fs.readdir('./data', (error, fileList) => {
-        var list = templateList(fileList);
-        var title = 'WEB - create!';
-        templateList(fileList);
-        var template = templateHtml(title, list, `
-          <form action="http://localhost:3000/process_create" method="post">
+    } else if (pathName === '/create') {
+        fs.readdir('./data', (error, fileList) => {
+            var list = templateList(fileList);
+            var title = 'WEB - create!';
+            templateList(fileList);
+            var template = templateHtml(
+                title,
+                list,
+                `
+          <form action="http://localhost:3000/create_process" method="post">
             <p><input type="text" name="title" placeholder="title"></p>
             <p>
               <textarea name="description" placeholder="description"></textarea>
@@ -77,12 +76,12 @@ var app = http.createServer(function (request, response) {
               <input type="submit">
             </p>
           </form>
-          `);
-        response.writeHead(200);
-        response.end(template);
-    });
-    }
-    else {
+          `
+            );
+            response.writeHead(200);
+            response.end(template);
+        });
+    } else {
         response.writeHead(404);
         response.end('Not found');
     }
