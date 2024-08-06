@@ -56,7 +56,12 @@ var app = http.createServer(function (request, response) {
                     var list = templateList(fileList);
                     var title = queryData.id;
                     var template = templateHtml(title, list, `<h2>${title}</h2>${description}`,
-                      `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`
+                      `<a href="/create">create</a>
+                      <a href="/update?id=${title}">update</a>
+                      <form action="delete_process" method="post">
+                        <input type="hidden" name="id" value="${title}">
+                        <input type="submit" value="delete">
+                      </form>`
                     );
                     response.writeHead(200);
                     response.end(template);
@@ -72,16 +77,16 @@ var app = http.createServer(function (request, response) {
                 title,
                 list,
                 `
-          <form action="/create_process" method="post">
-            <p><input type="text" name="title" placeholder="title"></p>
-            <p>
-              <textarea name="description" placeholder="description"></textarea>
-            </p>
-            <p>
-              <input type="submit">
-            </p>
-          </form>
-          `
+                  <form action="/create_process" method="post">
+                    <p><input type="text" name="title" placeholder="title"></p>
+                    <p>
+                      <textarea name="description" placeholder="description"></textarea>
+                    </p>
+                    <p>
+                      <input type="submit">
+                    </p>
+                  </form>
+                `
           , ''
             );
             response.writeHead(200);
@@ -128,7 +133,7 @@ var app = http.createServer(function (request, response) {
             response.end(template);
         });
     });
-    } else if([pathName === '/update_process']) {
+    } else if(pathName === '/update_process') {
       var body = '';
       request.on('data', function(data){
         body = body + data;
@@ -138,13 +143,25 @@ var app = http.createServer(function (request, response) {
         var title = post.title;
         var description = post.description;
         var id = post.id;
-        console.log('post: ', post);
         fs.rename(`data/${id}`, `data/${title}`, function(err){
           fs.writeFile(`data/${title}`, description, 'utf8', function(err){
             response.writeHead(302, {location: `/?id=${title}`});
             response.end();
           });
         })
+      });
+    } else if(pathName === '/delete_process'){
+      var body = '';
+      request.on('data', function(data){
+          body = body + data;
+      });
+      request.on('end', function(){
+          var post = qs.parse(body);
+          var id = post.id;
+          fs.unlink(`data/${id}`, function(error){
+            response.writeHead(302, {Location: `/`});
+            response.end();
+          })
       });
     } else {
         response.writeHead(404);
